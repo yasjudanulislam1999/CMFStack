@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CMFStack — Decision & Verification Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0f;font-family:'DM Sans',sans-serif;color:#e0e0e8;overflow-x:hidden}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0a0a0f}
+::-webkit-scrollbar-thumb{background:#26262e;border-radius:3px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes loadBar{from{width:0}to{width:100%}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(99,102,241,.3)}50%{box-shadow:0 0 20px rgba(99,102,241,.6)}}
+
+#splash{position:fixed;inset:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
+#splash.hide{opacity:0;pointer-events:none}
+#splash h1{font-size:48px;font-weight:800;color:#f0f0f5;letter-spacing:-2px;animation:fadeIn .8s ease}
+#splash h1 span{color:#6366f1}
+#splash p{font-size:14px;color:#606070;letter-spacing:3px;text-transform:uppercase;animation:fadeIn 1.2s ease}
+#splash .bar{margin-top:40px;width:200px;height:2px;background:#1a1a22;border-radius:2px;overflow:hidden}
+#splash .bar div{height:100%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:2px;animation:loadBar 2s ease forwards}
+
+header{border-bottom:1px solid #1a1a22;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;background:rgba(10,10,15,.9);backdrop-filter:blur(12px);z-index:100}
+.logo{font-size:22px;font-weight:800;letter-spacing:-1px}
+.logo span{color:#6366f1}
+.nav{display:flex;gap:4px}
+.nav button{background:transparent;color:#606070;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px}
+.nav button.active{background:#1a1a25;color:#f0f0f5}
+.nav button.active.viz{border:1px solid rgba(99,102,241,.3)}
+.header-right{display:flex;align-items:center;gap:16px}
+.project-badge{background:#1a1a22;border-radius:8px;padding:8px 14px;font-size:12px;color:#808090}
+.project-badge span{color:#e0e0e8;font-weight:600}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff}
+
+main{max-width:1400px;margin:0 auto;padding:32px}
+.tab-content{animation:slideUp .4s ease}
+
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:32px}
+.stat{background:#141419;border-radius:14px;padding:20px 24px;border:1px solid #1e1e28}
+.stat-label{font-size:10px;color:#606070;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.stat-value{font-size:32px;font-weight:800;letter-spacing:-1px}
+.stat-value.small{font-size:18px}
+
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.section-header h2{font-size:20px;font-weight:700;color:#f0f0f5;margin-bottom:4px}
+.section-header p{font-size:13px;color:#606070}
+.filters{display:flex;gap:8px}
+.filter-btn{border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.filter-btn.active{background:#6366f120;color:#818cf8}
+.filter-btn.inactive{background:#1a1a22;color:#606070}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+
+/* Material card */
+.mat-card{background:#141419;border-radius:16px;border:1px solid #26262e;overflow:hidden;transition:all .3s;position:relative}
+.mat-card.selected{border:2px solid #6366f1}
+.mat-card .swatch{height:160px;position:relative;display:flex;align-items:flex-end;padding:16px}
+.mat-card .swatch-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(20,20,25,.9) 0%,transparent 60%)}
+.mat-card .viz-btn{position:absolute;top:12px;right:12px;background:rgba(99,102,241,.9);backdrop-filter:blur(8px);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;z-index:2}
+.mat-card .swatch-info{position:relative;z-index:1}
+.mat-card .swatch-info h3{font-size:15px;font-weight:700;color:#f0f0f5;margin-bottom:4px}
+.mat-card .swatch-info p{font-size:12px;color:#9090a0}
+.mat-card .details{padding:16px}
+.mat-card .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.mat-card .meta-label{font-size:10px;color:#606070;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.mat-card .meta-value{font-size:13px;color:#c0c0d0}
+.actions{display:flex;gap:6px;margin-bottom:12px}
+.action-btn{flex:1;padding:8px 0;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.5px;transition:all .2s}
+.action-btn.approve{background:#0d3320;color:#34d399}
+.action-btn.shortlist{background:#2d2305;color:#fbbf24}
+.action-btn.reject{background:#3b1019;color:#f87171}
+
+.badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;display:inline-block}
+.badge.approved{background:#0d3320;color:#34d399}
+.badge.shortlisted{background:#2d2305;color:#fbbf24}
+.badge.rejected{background:#3b1019;color:#f87171}
+
+.comments-toggle{background:none;border:none;color:#6366f1;font-size:12px;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;font-weight:600}
+.comment-box{background:#1a1a22;border-radius:8px;padding:10px;margin-bottom:6px}
+.comment-user{font-size:11px;color:#6366f1;font-weight:600;margin-bottom:3px}
+.comment-text{font-size:12px;color:#a0a0b0}
+.comment-input{display:flex;gap:6px;margin-top:8px}
+.comment-input input{flex:1;background:#1a1a22;border:1px solid #26262e;border-radius:8px;padding:8px 12px;color:#e0e0e8;font-size:12px;outline:none;font-family:'DM Sans',sans-serif}
+.comment-input button{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer;font-weight:600;font-family:'DM Sans',sans-serif}
+
+/* Compare */
+.compare-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:32px}
+.compare-item{border-radius:10px;padding:12px 16px;cursor:pointer;transition:all .2s}
+.compare-item.active{background:#1a1a30;border:2px solid #6366f1}
+.compare-item.inactive{background:#141419;border:1px solid #1e1e28}
+.compare-table{background:#141419;border-radius:16px;border:1px solid #1e1e28;overflow:hidden}
+.compare-table table{width:100%;border-collapse:collapse}
+.compare-table th,.compare-table td{padding:14px 24px;text-align:left;border-bottom:1px solid #1a1a22}
+.compare-table th{font-size:11px;color:#505060;text-transform:uppercase;letter-spacing:1.5px;background:#10101a}
+.compare-table td{font-size:13px;color:#c0c0d0}
+.compare-swatch{height:60px;border-radius:10px;margin-bottom:10px}
+
+/* Visualise */
+.viz-layout{display:grid;grid-template-columns:1fr 320px;gap:20px}
+.viz-viewer{width:100%;aspect-ratio:16/9;background:radial-gradient(ellipse at 50% 40%,#1a1a2e 0%,#0a0a12 70%);border-radius:16px;position:relative;overflow:hidden;border:1px solid #1e1e28}
+.viz-badge{position:absolute;top:16px;left:16px;display:flex;align-items:center;gap:8px;z-index:10}
+.viz-ue5{background:rgba(99,102,241,.15);backdrop-filter:blur(8px);border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:6px;border:1px solid rgba(99,102,241,.3)}
+.viz-ue5 .dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 6px #34d399}
+.viz-ue5 span{font-size:11px;font-weight:700;color:#a0a0c0;letter-spacing:.5px}
+.viz-angle-label{background:rgba(20,20,30,.8);border-radius:8px;padding:6px 12px;font-size:11px;color:#606070}
+.viz-fps{position:absolute;top:16px;right:16px;background:rgba(20,20,30,.8);border-radius:6px;padding:4px 10px;font-size:10px;color:#505060;font-family:monospace;z-index:10}
+.viz-zone-label{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(99,102,241,.15);backdrop-filter:blur(12px);border-radius:10px;padding:10px 20px;border:1px solid rgba(99,102,241,.3);text-align:center;z-index:10}
+.viz-zone-label small{font-size:11px;color:#6366f1;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.viz-zone-label div{font-size:14px;color:#f0f0f5;font-weight:700}
+.viz-cameras{display:flex;gap:8px;margin-top:12px}
+.viz-cameras button{flex:1;border-radius:8px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.viz-cameras button.active{background:#1a1a30;border:1px solid rgba(99,102,241,.3);color:#c0c0f0}
+.viz-cameras button.inactive{background:#141419;border:1px solid #1e1e28;color:#505060}
+.viz-side{display:flex;flex-direction:column;gap:12px}
+.viz-mat-info{background:#141419;border-radius:14px;border:1px solid #1e1e28;overflow:hidden}
+.viz-mat-swatch{height:80px}
+.viz-mat-details{padding:16px}
+.viz-zones-list{background:#141419;border-radius:14px;border:1px solid #1e1e28;padding:16px}
+.viz-zones-title{font-size:11px;color:#505060;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-weight:700}
+.viz-zone-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;transition:all .2s;border:1px solid transparent}
+.viz-zone-item.active{background:#1a1a30;border-color:rgba(99,102,241,.2)}
+.viz-zone-item .mini-swatch{width:28px;height:28px;border-radius:6px;flex-shrink:0}
+.viz-render-info{background:#0d0d18;border-radius:12px;border:1px solid #1e1e28;padding:14px}
+.viz-loading{width:100%;aspect-ratio:16/9;background:#0a0a12;border-radius:16px;border:1px solid #1e1e28;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.viz-loading .spinner{width:48px;height:48px;border-radius:50%;border:3px solid #1e1e28;border-top-color:#6366f1;animation:spin 1s linear infinite}
+.viz-mode-btns{display:flex;gap:8px}
+.viz-mode-btn{border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* Audit */
+.audit-list{background:#141419;border-radius:16px;border:1px solid #1e1e28;padding:8px 0}
+.audit-item{display:flex;align-items:flex-start;gap:16px;padding:16px 24px;transition:background .2s}
+.audit-item:not(:last-child){border-bottom:1px solid #1a1a22}
+.audit-item:hover{background:#1a1a22}
+.audit-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.audit-user{font-size:13px;font-weight:700;color:#e0e0e8}
+.audit-role{font-size:11px;color:#505060;background:#1a1a22;padding:2px 8px;border-radius:4px}
+.audit-action{font-size:13px;color:#909098}
+.audit-time{font-size:12px;color:#404050;font-weight:600;font-variant-numeric:tabular-nums}
+.audit-note{margin-top:24px;background:#141419;border-radius:16px;border:1px solid #1e1e28;padding:24px}
+
+/* AI */
+.ai-input-area{background:#141419;border-radius:16px;border:1px solid #1e1e28;padding:24px;margin-bottom:24px}
+.ai-input-row{display:flex;gap:10px}
+.ai-input{flex:1;background:#1a1a22;border:1px solid #26262e;border-radius:10px;padding:14px 18px;color:#e0e0e8;font-size:14px;outline:none;font-family:'DM Sans',sans-serif}
+.ai-submit{background:linear-gradient(135deg,#6366f1,#818cf8);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.ai-presets{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.ai-preset{background:#1a1a22;border:1px solid #26262e;border-radius:20px;padding:6px 14px;font-size:11px;color:#808090;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.ai-preset:hover{border-color:#6366f1;color:#c0c0d0}
+.ai-loading{background:#141419;border-radius:16px;border:1px solid #1e1e28;padding:40px;text-align:center}
+.ai-result{background:#141419;border-radius:16px;border:1px solid #1e1e28;padding:24px}
+.ai-card{background:#141419;border-radius:16px;border:1px solid #1e1e28;padding:24px;display:flex;align-items:flex-start;gap:20px}
+.ai-rank{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0}
+.ai-match{background:#6366f120;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.ai-note{margin-top:20px;background:#0d0d18;border-radius:12px;border:1px solid #1e1e28;padding:16px 20px;display:flex;align-items:center;gap:12px}
+
+footer{border-top:1px solid #1a1a22;padding:20px 32px;margin-top:40px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#404050}
+
+svg .zone{cursor:pointer;transition:all .3s}
+svg .zone:hover{opacity:1!important}
+
+@media(max-width:900px){
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .grid{grid-template-columns:1fr}
+  .viz-layout{grid-template-columns:1fr}
+  .compare-grid{grid-template-columns:repeat(2,1fr)}
+  .viz-cameras{flex-wrap:wrap}
+  header{padding:0 16px}
+  main{padding:16px}
+  .project-badge{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Splash -->
+<div id="splash">
+  <h1>CMF<span>Stack</span></h1>
+  <p>Decision &amp; Verification Platform</p>
+  <div class="bar"><div></div></div>
+</div>
+
+<!-- App -->
+<div id="app" style="display:none">
+  <header>
+    <div style="display:flex;align-items:center;gap:32px">
+      <div class="logo">CMF<span>Stack</span></div>
+      <div class="nav" id="nav"></div>
+    </div>
+    <div class="header-right">
+      <div class="project-badge">Project: <span>Aurora EV — Interior Trim</span></div>
+      <div class="avatar">JD</div>
+    </div>
+  </header>
+  <main id="main"></main>
+  <footer>
+    <div>CMFStack v0.2 — Interactive Prototype Demo · UE5 Visualisation Integrated</div>
+    <div>© 2026 CMFStack. All rights reserved.</div>
+  </footer>
+</div>
+
+<script>
+const MATERIALS=[
+{id:1,name:"Nappa Leather — Midnight Black",type:"Leather",cost:"£42/m²",durability:"High",sustainability:"B+",supplier:"Muirhead UK",status:null,comments:[],gradient:"linear-gradient(145deg,#1a1a1a 0%,#2d2d2d 40%,#1a1a1a 100%)",vizColor:"#1a1a1a",vizHL:"#2d2d2d",zone:"Seats"},
+{id:2,name:"Alcantara — Storm Grey",type:"Synthetic Suede",cost:"£38/m²",durability:"Very High",sustainability:"A",supplier:"Alcantara S.p.A",status:null,comments:[],gradient:"linear-gradient(145deg,#5a5a6e 0%,#7a7a8e 40%,#5a5a6e 100%)",vizColor:"#5a5a6e",vizHL:"#7a7a8e",zone:"Headliner"},
+{id:3,name:"Brushed Aluminium — Titanium",type:"Metal Trim",cost:"£28/unit",durability:"Very High",sustainability:"A-",supplier:"Novelis EU",status:null,comments:[],gradient:"linear-gradient(145deg,#b8b8c8 0%,#d4d4e0 30%,#a0a0b0 60%,#c8c8d8 100%)",vizColor:"#b8b8c8",vizHL:"#e0e0ec",zone:"IP Trim"},
+{id:4,name:"Open Pore Walnut — Warm Oak",type:"Wood Veneer",cost:"£65/m²",durability:"Medium",sustainability:"B",supplier:"Tabu S.p.A",status:null,comments:[],gradient:"linear-gradient(145deg,#6b4226 0%,#8b5a3a 40%,#5a3520 100%)",vizColor:"#6b4226",vizHL:"#8b5a3a",zone:"Door Panels"},
+{id:5,name:"Recycled PET Weave — Slate",type:"Textile",cost:"£18/m²",durability:"High",sustainability:"A+",supplier:"Econyl UK",status:null,comments:[],gradient:"linear-gradient(145deg,#4a5568 0%,#5a6578 40%,#3a4558 100%)",vizColor:"#4a5568",vizHL:"#5a6578",zone:"Carpet"},
+{id:6,name:"Piano Black Lacquer",type:"Gloss Finish",cost:"£55/unit",durability:"Medium",sustainability:"C+",supplier:"BASF Coatings",status:null,comments:[],gradient:"linear-gradient(145deg,#0a0a0a 0%,#222 30%,#0a0a0a 50%,#1a1a1a 100%)",vizColor:"#0a0a0a",vizHL:"#222",zone:"Centre Console"},
+{id:7,name:"Satin Chrome — Cool Silver",type:"Metal Trim",cost:"£32/unit",durability:"High",sustainability:"B+",supplier:"Atotech DE",status:null,comments:[],gradient:"linear-gradient(145deg,#c0c0c0 0%,#e8e8e8 30%,#b0b0b0 60%,#d0d0d0 100%)",vizColor:"#c0c0c0",vizHL:"#e8e8e8",zone:"Speaker Grilles"},
+{id:8,name:"Merino Leather — Cognac Tan",type:"Leather",cost:"£52/m²",durability:"High",sustainability:"B",supplier:"Bridge of Weir",status:null,comments:[],gradient:"linear-gradient(145deg,#8b5e3c 0%,#a0724e 40%,#7a4e2c 100%)",vizColor:"#8b5e3c",vizHL:"#a0724e",zone:"Steering Wheel"}
+];
+
+const AUDIT=[
+{time:"09:12",user:"J. Ranjan Dash",role:"CMF Lead",action:"Uploaded 8 material options to Project Aurora",type:"upload"},
+{time:"10:34",user:"S. Patel",role:"Design Director",action:"Approved Nappa Leather — Midnight Black",type:"approve"},
+{time:"10:41",user:"S. Patel",role:"Design Director",action:"Shortlisted Alcantara — Storm Grey for further review",type:"shortlist"},
+{time:"11:15",user:"R. Tanaka",role:"Engineering",action:"Commented: 'Piano Black scratches too easily for centre console — suggest matte alternative'",type:"comment"},
+{time:"11:48",user:"M. Weber",role:"Procurement",action:"Rejected Piano Black Lacquer — cost exceeds trim budget by 18%",type:"reject"},
+{time:"14:02",user:"J. Ranjan Dash",role:"CMF Lead",action:"AI Assistant flagged Recycled PET Weave as best sustainability match",type:"ai"},
+{time:"14:30",user:"L. Gupta",role:"Supplier",action:"Updated lead time for Brushed Aluminium — Titanium to 6 weeks",type:"comment"},
+{time:"15:10",user:"S. Patel",role:"Design Director",action:"Final approval: Nappa Leather + Brushed Aluminium for IP trim",type:"approve"},
+{time:"15:45",user:"J. Ranjan Dash",role:"CMF Lead",action:"Launched UE5 Final Review — all approved materials verified on 3D interior",type:"visualise"}
+];
+
+const AI_SUGGESTIONS=[
+{material:"Recycled PET Weave — Slate",reason:"Highest sustainability score (A+) while meeting durability requirements. 62% lower carbon footprint than leather alternatives.",match:94},
+{material:"Alcantara — Storm Grey",reason:"Best balance of premium feel, durability, and cost. Strong brand alignment for sport-luxury positioning.",match:89},
+{material:"Brushed Aluminium — Titanium",reason:"Excellent durability-to-cost ratio. Manufacturing feasibility confirmed for CNC and stamping processes.",match:85}
+];
+
+const TABS=["Dashboard","Compare","Visualise","Audit Trail","AI Assistant"];
+const ICON={upload:"↑",approve:"✓",shortlist:"★",reject:"✕",comment:"💬",ai:"◆",visualise:"◉"};
+const ICOLOR={upload:"#818cf8",approve:"#34d399",shortlist:"#fbbf24",reject:"#f87171",comment:"#60a5fa",ai:"#c084fc",visualise:"#f472b6"};
+
+let activeTab="Dashboard", vizMat=null, vizAngle="Driver POV", vizMode="single", vizLoading=false;
+let compareSelected=[1,2];
+
+function badge(s){if(!s)return'';const m={approved:["#0d3320","#34d399"],shortlisted:["#2d2305","#fbbf24"],rejected:["#3b1019","#f87171"]};const c=m[s];return `<span class="badge ${s}" style="background:${c[0]};color:${c[1]}">${s}</span>`}
+
+function matByZone(z){return MATERIALS.find(m=>m.zone===z)}
+function getInteriorSVG(){
+  const zc=(z)=>matByZone(z)?.vizColor||"#2a2a3a";
+  const zh=(z)=>matByZone(z)?.vizHL||"#3a3a4a";
+  const ia=(z)=>vizMat&&vizMat.zone===z;
+  const sc=(z)=>ia(z)?"#6366f1":"#444";
+  const op=(z)=>ia(z)?1:.7;
+  return `<svg viewBox="0 0 100 70" style="width:100%;height:100%;position:absolute;inset:0">
+    <path d="M12 8Q50 2 88 8L85 14Q50 9 15 14Z" fill="${zc('Headliner')}" opacity="${op('Headliner')}" stroke="${sc('Headliner')}" stroke-width=".3" class="zone" onclick="selectZone('Headliner')"/>
+    <path d="M10 14Q50 10 90 14L88 26Q50 22 12 26Z" fill="${zc('IP Trim')}" opacity="${op('IP Trim')}" stroke="${sc('IP Trim')}" stroke-width=".3" class="zone" onclick="selectZone('IP Trim')"/>
+    <path d="M15 16Q50 13 85 16L84 18Q50 15 16 18Z" fill="${zh('IP Trim')}" opacity=".3"/>
+    <ellipse cx="28" cy="38" rx="7" ry="7" fill="${zc('Steering Wheel')}" opacity="${op('Steering Wheel')}" stroke="${sc('Steering Wheel')}" stroke-width=".3" class="zone" onclick="selectZone('Steering Wheel')"/>
+    <ellipse cx="28" cy="38" rx="4.5" ry="4.5" fill="#0a0a12" opacity=".8"/>
+    <line x1="22" y1="38" x2="24" y2="38" stroke="#555" stroke-width=".5"/><line x1="32" y1="38" x2="34" y2="38" stroke="#555" stroke-width=".5"/><line x1="28" y1="32" x2="28" y2="34" stroke="#555" stroke-width=".5"/>
+    <rect x="42" y="28" width="16" height="24" rx="2" fill="${zc('Centre Console')}" opacity="${op('Centre Console')}" stroke="${sc('Centre Console')}" stroke-width=".3" class="zone" onclick="selectZone('Centre Console')"/>
+    <rect x="44" y="30" width="12" height="7" rx="1" fill="#111120" opacity=".9"/><rect x="45" y="31" width="10" height="5" rx=".5" fill="#1a1a3a" opacity=".5"/>
+    <circle cx="47" cy="42" r="1.5" fill="#222" opacity=".8"/><circle cx="53" cy="42" r="1.5" fill="#222" opacity=".8"/>
+    <path d="M2 18L10 14L12 52L2 48Z" fill="${zc('Door Panels')}" opacity="${op('Door Panels')}" stroke="${sc('Door Panels')}" stroke-width=".3" class="zone" onclick="selectZone('Door Panels')"/>
+    <path d="M98 18L90 14L88 52L98 48Z" fill="${zc('Door Panels')}" opacity=".5" stroke="#333" stroke-width=".3"/>
+    <path d="M15 42Q15 38 22 36L36 36Q38 38 38 42L38 60Q37 62 35 62L17 62Q15 62 15 60Z" fill="${zc('Seats')}" opacity="${op('Seats')}" stroke="${sc('Seats')}" stroke-width=".3" class="zone" onclick="selectZone('Seats')"/>
+    <line x1="22" y1="44" x2="22" y2="58" stroke="${zh('Seats')}" stroke-width=".2" opacity=".5"/><line x1="30" y1="44" x2="30" y2="58" stroke="${zh('Seats')}" stroke-width=".2" opacity=".5"/>
+    <path d="M62 42Q62 38 66 36L82 36Q85 38 85 42L85 60Q84 62 82 62L64 62Q62 62 62 60Z" fill="${zc('Seats')}" opacity=".5" stroke="#333" stroke-width=".3"/>
+    <line x1="69" y1="44" x2="69" y2="58" stroke="${zh('Seats')}" stroke-width=".2" opacity=".4"/><line x1="77" y1="44" x2="77" y2="58" stroke="${zh('Seats')}" stroke-width=".2" opacity=".4"/>
+    <path d="M12 52L42 52L42 68L8 68Z" fill="${zc('Carpet')}" opacity="${op('Carpet')?op('Carpet'):.4}" stroke="${ia('Carpet')?'#6366f1':'transparent'}" stroke-width=".3" class="zone" onclick="selectZone('Carpet')"/>
+    <path d="M58 52L88 52L92 68L58 68Z" fill="${zc('Carpet')}" opacity=".3"/>
+    <circle cx="6" cy="36" r="2.5" fill="${zc('Speaker Grilles')}" opacity="${op('Speaker Grilles')}" stroke="${sc('Speaker Grilles')}" stroke-width=".3" class="zone" onclick="selectZone('Speaker Grilles')"/>
+    <circle cx="6" cy="36" r="1.2" fill="#111" opacity=".6"/>
+  </svg>`;
+}
+
+function selectZone(z){vizMat=matByZone(z);render()}
+
+function setTab(t){activeTab=t;render()}
+function setStatus(id,s){MATERIALS.find(m=>m.id===id).status=s;render()}
+function addComment(id){const inp=document.getElementById('ci-'+id);if(!inp||!inp.value.trim())return;MATERIALS.find(m=>m.id===id).comments.push({user:"You",text:inp.value});inp.value='';render()}
+function toggleComments(id){const el=document.getElementById('cm-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none'}
+function toggleCompare(id){const i=compareSelected.indexOf(id);if(i>-1)compareSelected.splice(i,1);else{if(compareSelected.length>=3)compareSelected.shift();compareSelected.push(id)}render()}
+function openViz(id){vizMat=MATERIALS.find(m=>m.id===id);vizMode="single";activeTab="Visualise";render()}
+function setVizAngle(a){vizAngle=a;render()}
+function setVizMode(m){vizMode=m;if(m==='final'){vizLoading=true;vizMat=null;render();setTimeout(()=>{vizLoading=false;render()},2000)}else render()}
+function setAiQuery(q){document.getElementById('ai-input').value=q}
+
+function renderDashboard(){
+  const approved=MATERIALS.filter(m=>m.status==='approved').length;
+  const shortlisted=MATERIALS.filter(m=>m.status==='shortlisted').length;
+  const rejected=MATERIALS.filter(m=>m.status==='rejected').length;
+  let h=`<div class="stats">
+    <div class="stat"><div class="stat-label">Total Materials</div><div class="stat-value" style="color:#818cf8">${MATERIALS.length}</div></div>
+    <div class="stat"><div class="stat-label">Approved</div><div class="stat-value" style="color:#34d399">${approved}</div></div>
+    <div class="stat"><div class="stat-label">Shortlisted</div><div class="stat-value" style="color:#fbbf24">${shortlisted}</div></div>
+    <div class="stat"><div class="stat-label">Rejected</div><div class="stat-value" style="color:#f87171">${rejected}</div></div>
+    <div class="stat"><div class="stat-label">Visualised</div><div class="stat-value small" style="color:#f472b6">UE5 Ready</div></div>
+  </div>`;
+  h+=`<div class="section-header"><div><h2>Material Options</h2><p>Review, compare, approve, and visualise materials for Aurora EV interior trim programme</p></div></div>`;
+  h+=`<div class="grid">`;
+  MATERIALS.forEach(m=>{
+    h+=`<div class="mat-card">
+      <div class="swatch" style="background:${m.gradient}">
+        <div class="swatch-overlay"></div>
+        <button class="viz-btn" onclick="openViz(${m.id})"><span style="font-size:13px">◉</span> Visualise</button>
+        <div class="swatch-info"><h3>${m.name}</h3><p>${m.type} · ${m.zone}</p></div>
+      </div>
+      <div class="details">
+        <div class="meta">
+          <div><div class="meta-label">Cost</div><div class="meta-value">${m.cost}</div></div>
+          <div><div class="meta-label">Durability</div><div class="meta-value">${m.durability}</div></div>
+          <div><div class="meta-label">Sustainability</div><div class="meta-value">${m.sustainability}</div></div>
+          <div><div class="meta-label">Supplier</div><div class="meta-value">${m.supplier}</div></div>
+        </div>
+        ${m.status?'<div style="margin-bottom:12px">'+badge(m.status)+'</div>':''}
+        <div class="actions">
+          <button class="action-btn approve" onclick="setStatus(${m.id},'approved')">Approve</button>
+          <button class="action-btn shortlist" onclick="setStatus(${m.id},'shortlisted')">Shortlist</button>
+          <button class="action-btn reject" onclick="setStatus(${m.id},'rejected')">Reject</button>
+        </div>
+        <button class="comments-toggle" onclick="toggleComments(${m.id})">Comments (${m.comments.length})</button>
+        <div id="cm-${m.id}" style="display:none;margin-top:10px">
+          ${m.comments.map(c=>`<div class="comment-box"><div class="comment-user">${c.user}</div><div class="comment-text">${c.text}</div></div>`).join('')}
+          <div class="comment-input"><input id="ci-${m.id}" placeholder="Add feedback..." onkeydown="if(event.key==='Enter')addComment(${m.id})"/><button onclick="addComment(${m.id})">Send</button></div>
+        </div>
+      </div>
+    </div>`;
+  });
+  h+=`</div>`;
+  return h;
+}
+
+function renderCompare(){
+  const sel=MATERIALS.filter(m=>compareSelected.includes(m.id));
+  let h=`<div style="margin-bottom:24px"><h2 style="font-size:20px;font-weight:700;color:#f0f0f5;margin-bottom:4px">Side-by-Side Comparison</h2><p style="font-size:13px;color:#606070">Select up to 3 materials to compare</p></div>`;
+  h+=`<div class="compare-grid">`;
+  MATERIALS.forEach(m=>{
+    const a=compareSelected.includes(m.id);
+    h+=`<div class="compare-item ${a?'active':'inactive'}" onclick="toggleCompare(${m.id})"><div style="font-size:13px;font-weight:600;color:${a?'#f0f0f5':'#808090'}">${m.name}</div><div style="font-size:11px;color:#505060;margin-top:2px">${m.type} · ${m.zone}</div></div>`;
+  });
+  h+=`</div>`;
+  if(sel.length>=2){
+    h+=`<div class="compare-table"><table><thead><tr><th>Attribute</th>`;
+    sel.forEach(m=>{h+=`<th><div class="compare-swatch" style="background:${m.gradient}"></div><div style="font-size:14px;font-weight:700;color:#f0f0f5">${m.name}</div><div style="font-size:11px;color:#606070;margin-top:2px">${m.type} · ${m.zone}</div></th>`});
+    h+=`</tr></thead><tbody>`;
+    ['cost','durability','sustainability','supplier','zone','status'].forEach(attr=>{
+      h+=`<tr><td style="font-weight:600;color:#808090;text-transform:capitalize">${attr==='zone'?'Interior Zone':attr}</td>`;
+      sel.forEach(m=>{h+=`<td>${attr==='status'?(m.status?badge(m.status):'<span style="color:#505060;font-size:12px">Pending</span>'):m[attr]}</td>`});
+      h+=`</tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  }
+  return h;
+}
+
+function renderVisualise(){
+  let h=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+    <div><h2 style="font-size:20px;font-weight:700;color:#f0f0f5;margin-bottom:4px;display:flex;align-items:center;gap:10px">Material Visualisation <span style="font-size:11px;font-weight:600;color:#f472b6;background:#f472b620;padding:3px 10px;border-radius:20px">Powered by Unreal Engine 5</span></h2>
+    <p style="font-size:13px;color:#606070">${vizMode==='final'?'Final review — all approved materials applied to vehicle interior':'Click any zone to preview materials. Click Visualise on any material card.'}</p></div>
+    <div class="viz-mode-btns">
+      <button class="viz-mode-btn" style="background:${vizMode==='single'?'#6366f120':'#1a1a22'};color:${vizMode==='single'?'#818cf8':'#606070'};border:${vizMode==='single'?'1px solid rgba(99,102,241,.3)':'1px solid #26262e'}" onclick="setVizMode('single')">Material Preview</button>
+      <button class="viz-mode-btn" style="background:${vizMode==='final'?'linear-gradient(135deg,#6366f1,#818cf8)':'#1a1a22'};color:${vizMode==='final'?'#fff':'#606070'};border:${vizMode==='final'?'none':'1px solid #26262e'};${vizMode==='final'?'animation:glow 2s ease infinite':''}" onclick="setVizMode('final')">◉ Final Review</button>
+    </div>
+  </div>`;
+
+  h+=`<div class="viz-layout"><div>`;
+  if(vizLoading){
+    h+=`<div class="viz-loading"><div class="spinner"></div><div style="font-size:14px;color:#6366f1;font-weight:600">Initialising UE5 render stream...</div><div style="font-size:12px;color:#404050">Applying approved materials to interior model</div></div>`;
+  }else{
+    h+=`<div class="viz-viewer">
+      <div style="position:absolute;top:-20%;left:30%;width:40%;height:40%;background:radial-gradient(ellipse,rgba(100,100,180,.08) 0%,transparent 70%);pointer-events:none"></div>
+      <div class="viz-badge"><div class="viz-ue5"><div class="dot"></div><span>UE5 RENDER</span></div><div class="viz-angle-label">${vizAngle}</div></div>
+      <div class="viz-fps">60 FPS · 3840×2160</div>
+      ${getInteriorSVG()}
+      ${vizMat?`<div class="viz-zone-label"><small>${vizMat.zone}</small><div>${vizMat.name}</div></div>`:''}
+    </div>`;
+  }
+  h+=`<div class="viz-cameras">${["Driver POV","Passenger POV","Rear Seat","Overhead","Detail Close-up"].map(a=>`<button class="${vizAngle===a?'active':'inactive'}" onclick="setVizAngle('${a}')">${a}</button>`).join('')}</div></div>`;
+
+  // Side panel
+  h+=`<div class="viz-side">`;
+  if(vizMat){
+    h+=`<div class="viz-mat-info"><div class="viz-mat-swatch" style="background:${vizMat.gradient}"></div><div class="viz-mat-details">
+      <div style="font-size:15px;font-weight:700;color:#f0f0f5;margin-bottom:4px">${vizMat.name}</div>
+      <div style="font-size:12px;color:#606070;margin-bottom:12px">${vizMat.type} · ${vizMat.zone}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><div style="font-size:9px;color:#505060;text-transform:uppercase;letter-spacing:1px">Cost</div><div style="font-size:12px;color:#b0b0c0">${vizMat.cost}</div></div>
+        <div><div style="font-size:9px;color:#505060;text-transform:uppercase;letter-spacing:1px">Durability</div><div style="font-size:12px;color:#b0b0c0">${vizMat.durability}</div></div>
+        <div><div style="font-size:9px;color:#505060;text-transform:uppercase;letter-spacing:1px">Sustainability</div><div style="font-size:12px;color:#b0b0c0">${vizMat.sustainability}</div></div>
+        <div><div style="font-size:9px;color:#505060;text-transform:uppercase;letter-spacing:1px">Supplier</div><div style="font-size:12px;color:#b0b0c0">${vizMat.supplier}</div></div>
+      </div>
+      ${vizMat.status?'<div style="margin-top:10px">'+badge(vizMat.status)+'</div>':''}
+    </div></div>`;
+  }
+  h+=`<div class="viz-zones-list"><div class="viz-zones-title">Interior Zones</div>`;
+  MATERIALS.forEach(m=>{
+    const a=vizMat&&vizMat.id===m.id;
+    h+=`<div class="viz-zone-item ${a?'active':''}" onclick="vizMat=MATERIALS.find(x=>x.id===${m.id});vizMode='single';render()" style="${a?'background:#1a1a30;border-color:rgba(99,102,241,.2)':''}">
+      <div class="mini-swatch" style="background:${m.gradient}"></div>
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:${a?'#e0e0f0':'#909098'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div><div style="font-size:10px;color:#505060">${m.zone}</div></div>
+      ${m.status?badge(m.status):''}
+    </div>`;
+  });
+  h+=`</div>`;
+  h+=`<div class="viz-render-info"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 4px #34d399"></div><span style="font-size:11px;font-weight:700;color:#808090">Render Engine</span></div><div style="font-size:11px;color:#505060;line-height:1.6">Unreal Engine 5.4 · Lumen GI · Nanite<br>Physically-based materials · HDRI studio lighting<br>${vizMode==='final'?'Pixel Streaming active':'Pre-rendered cubemap mode'}</div></div>`;
+  h+=`</div></div>`;
+  return h;
+}
+
+function renderAudit(){
+  let h=`<div style="margin-bottom:24px"><h2 style="font-size:20px;font-weight:700;color:#f0f0f5;margin-bottom:4px">Decision Audit Trail</h2><p style="font-size:13px;color:#606070">Complete chronological record of every action, approval, visualisation review, and decision</p></div>`;
+  h+=`<div class="audit-list">`;
+  AUDIT.forEach((e,i)=>{
+    h+=`<div class="audit-item"><div class="audit-icon" style="background:${ICOLOR[e.type]}20;color:${ICOLOR[e.type]}">${ICON[e.type]}</div><div style="flex:1"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="audit-user">${e.user}</span><span class="audit-role">${e.role}</span></div><div class="audit-action">${e.action}</div></div><div class="audit-time">Today ${e.time}</div></div>`;
+  });
+  h+=`</div>`;
+  h+=`<div class="audit-note"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="width:8px;height:8px;border-radius:50%;background:#34d399"></div><span style="font-size:13px;font-weight:700;color:#f0f0f5">Immutable Record</span></div><p style="font-size:13px;color:#707080;line-height:1.7">Every action in CMFStack creates a permanent, timestamped record. This includes material approvals, rejections, comments, AI recommendations, and UE5 visualisation review sessions.</p></div>`;
+  return h;
+}
+
+function renderAI(){
+  let h=`<div style="margin-bottom:24px"><h2 style="font-size:20px;font-weight:700;color:#f0f0f5;margin-bottom:4px">AI-Assisted Material Selection</h2><p style="font-size:13px;color:#606070">Describe your constraints and the AI will recommend the best matching materials</p></div>`;
+  h+=`<div class="ai-input-area"><div class="ai-input-row"><input id="ai-input" class="ai-input" placeholder="e.g. 'High durability, sustainable, under £40/m², suitable for sport-luxury positioning'" onkeydown="if(event.key==='Enter')runAI()"/><button class="ai-submit" onclick="runAI()">Analyse</button></div>
+  <div class="ai-presets">${["High sustainability, premium feel","Under £35/m², durable for daily use","Brand-aligned luxury, scratch-resistant"].map(q=>`<button class="ai-preset" onclick="setAiQuery('${q}')">${q}</button>`).join('')}</div></div>`;
+  h+=`<div id="ai-results"></div>`;
+  return h;
+}
+
+window.runAI=function(){
+  const inp=document.getElementById('ai-input');
+  if(!inp||!inp.value.trim())return;
+  const q=inp.value;
+  const res=document.getElementById('ai-results');
+  res.innerHTML=`<div class="ai-loading"><div style="font-size:14px;color:#6366f1;font-weight:600;animation:pulse 1.5s infinite">Analysing materials against constraints...</div></div>`;
+  setTimeout(()=>{
+    let h=`<div class="ai-result" style="margin-bottom:16px"><div style="font-size:13px;color:#909098;line-height:1.7">Based on your constraints — "${q}" — I've analysed ${MATERIALS.length} materials against brand guidelines, cost targets, and manufacturing feasibility.</div></div>`;
+    h+=`<div style="display:flex;flex-direction:column;gap:12px">`;
+    AI_SUGGESTIONS.forEach((s,i)=>{
+      const bg=i===0?'#6366f1,#818cf8':i===1?'#818cf8,#a5b4fc':'#a5b4fc,#c7d2fe';
+      h+=`<div class="ai-card"><div class="ai-rank" style="background:linear-gradient(135deg,${bg})">#${i+1}</div><div style="flex:1"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:15px;font-weight:700;color:#f0f0f5">${s.material}</div><div class="ai-match">${s.match}% match</div></div><div style="font-size:13px;color:#808090;line-height:1.6">${s.reason}</div></div></div>`;
+    });
+    h+=`</div>`;
+    h+=`<div class="ai-note"><div style="color:#fbbf24;font-size:16px">⚡</div><div style="font-size:12px;color:#707080;line-height:1.6">AI recommendations are filtered by brand guidelines, cost targets, durability, sustainability, and manufacturing feasibility. All suggestions require human approval and visual verification.</div></div>`;
+    res.innerHTML=h;
+  },1800);
+}
+
+function render(){
+  // Nav
+  const nav=document.getElementById('nav');
+  nav.innerHTML=TABS.map(t=>`<button class="${activeTab===t?'active':''}${t==='Visualise'&&activeTab===t?' viz':''}" onclick="setTab('${t}')">${t==='Visualise'?'<span style="font-size:10px;color:#818cf8">◉</span> ':'' }${t}</button>`).join('');
+  // Content
+  const main=document.getElementById('main');
+  let content='<div class="tab-content">';
+  if(activeTab==='Dashboard')content+=renderDashboard();
+  else if(activeTab==='Compare')content+=renderCompare();
+  else if(activeTab==='Visualise')content+=renderVisualise();
+  else if(activeTab==='Audit Trail')content+=renderAudit();
+  else if(activeTab==='AI Assistant')content+=renderAI();
+  content+='</div>';
+  main.innerHTML=content;
+}
+
+// Init
+setTimeout(()=>{
+  document.getElementById('splash').classList.add('hide');
+  document.getElementById('app').style.display='block';
+  render();
+},2200);
+</script>
+</body>
+</html>
