@@ -155,10 +155,16 @@ header{border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-i
 .ac .ad{font-size:14px;color:var(--fg3);margin:0 0 10px}
 .ac .vb{padding:6px 14px;border:1.5px solid var(--accent);background:var(--accent-bg);color:var(--accent);border-radius:7px;cursor:pointer;font-weight:600;font-size:13px;font-family:'DM Sans'}
 
+
+.lib-btn{padding:5px 0;border:1px solid var(--border);background:transparent;color:var(--fg4);border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans';white-space:nowrap;text-align:center;transition:all .12s;flex:1}
+.lib-btn:hover{border-color:var(--accent);color:var(--accent)}
+.lib-btn-shortlisted{border-color:var(--orange);background:var(--orange-bg);color:var(--orange)}
+.lib-btn-compared{border-color:var(--accent);background:var(--accent-bg);color:var(--accent)}
 .edit-input{background:transparent;border:none;border-bottom:1.5px solid var(--accent);color:var(--fg);font-size:14px;font-family:'DM Sans';outline:none;width:100%;padding:2px 0}
 
-.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:22px}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:16px;padding:22px}
 .lib-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .12s}
+.lib-card.compared{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .lib-card:hover{border-color:var(--accent);box-shadow:0 2px 12px rgba(108,71,217,.1)}
 .lib-card .li{height:110px;overflow:hidden}
 .lib-card .li img{width:100%;height:100%;object-fit:cover}
@@ -529,14 +535,14 @@ function renderLibraryGrid(){
   mats.forEach(m=>{
     const isCompare=state.compareSet.has(m.id);
     const isShort=m.status==="shortlisted";
-    h+=`<div class="lib-card" style="position:relative;${isCompare?'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)':''}">
+    h+=`<div class="lib-card ${isCompare?'compared':''}" style="position:relative">
       <div class="li"><img src="${m.img}" alt=""></div>
       <div class="lb">
         <h4>${m.name}</h4>
         <p>${m.type} · ${m.supplier}</p>
         <div style="display:flex;gap:4px;margin-top:6px">
-          <button onclick="event.stopPropagation();toggleLibShortlist('${m.id}')" style="flex:1;padding:4px 0;border:1px solid ${isShort?'var(--orange)':'var(--border)'};background:${isShort?'var(--orange-bg)':'transparent'};color:${isShort?'var(--orange)':'var(--fg4)'};border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans'">${isShort?'★ Shortlisted':'☆ Shortlist'}</button>
-          <button onclick="event.stopPropagation();toggleCompareLib('${m.id}')" style="flex:1;padding:4px 0;border:1px solid ${isCompare?'var(--accent)':'var(--border)'};background:${isCompare?'var(--accent-bg)':'transparent'};color:${isCompare?'var(--accent)':'var(--fg4)'};border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans'">${isCompare?'✓ Compare':'Compare'}</button>
+          <button class="lib-btn ${isShort?'lib-btn-shortlisted':''}" onclick="event.stopPropagation();toggleLibShortlist('${m.id}')">${isShort?'★ Shortlisted':'☆ Shortlist'}</button>
+          <button class="lib-btn ${isCompare?'lib-btn-compared':''}" onclick="event.stopPropagation();toggleCompareLib('${m.id}')">${isCompare?'✓ Compare':'Compare'}</button>
         </div>
       </div>
     </div>`;
