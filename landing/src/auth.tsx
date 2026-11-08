@@ -1,5 +1,6 @@
 /* Login gateway, client side. The real gate is proxy.ts on Vercel; this file gives the sign-in screen,
    sends signed-out visitors to it before they open the tool, and shows the account button. */
+import { useEffect } from 'react'
 import type { MouseEvent, ReactNode } from 'react'
 import { SignIn, SignUp, UserButton, useAuth } from '@clerk/react'
 import logo from './assets/logo.svg'
@@ -50,9 +51,29 @@ function ClerkAccount() {
 }
 export const AccountSlot = CLERK_KEY ? ClerkAccount : () => null
 
+/* Safety net: a visitor who reaches /sign-in already signed in (for example while the session cookie was still
+   being written) is sent on to the page they asked for, at most twice a minute so a server refusal can't loop. */
+function ForwardIfSignedIn() {
+  const { isLoaded, isSignedIn } = useAuth()
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return
+    const raw = new URLSearchParams(window.location.search).get('redirect_url') || PROTECTED_HOME
+    const target = new URL(raw, window.location.origin)
+    if (target.origin !== window.location.origin) return
+    for (const key of [...target.searchParams.keys()]) if (key.startsWith('__clerk')) target.searchParams.delete(key)
+    let recent: number[] = []
+    try { recent = (JSON.parse(sessionStorage.getItem('cmf-forward') || '[]') as number[]).filter(t => Date.now() - t < 60000) } catch { /* storage unavailable */ }
+    if (recent.length >= 2) return
+    try { sessionStorage.setItem('cmf-forward', JSON.stringify([...recent, Date.now()])) } catch { /* storage unavailable */ }
+    window.location.replace(target.pathname + target.search + target.hash)
+  }, [isLoaded, isSignedIn])
+  return null
+}
+
 export function AuthPage({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   return (
     <div className="auth">
+      {CLERK_KEY && <ForwardIfSignedIn />}
       <a className="auth__home" href="/" aria-label="Back to CMFStack">
         <span className="logo"><img src={logo} alt="" width={52} height={52} /></span>
         <span>CMFStack</span>

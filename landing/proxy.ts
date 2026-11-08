@@ -10,6 +10,8 @@ const clerk = publishableKey && secretKey ? createClerkClient({ publishableKey, 
 
 function toSignIn(request: Request) {
   const url = new URL(request.url)
+  // Never carry Clerk's one-time handshake parameters into the return address; replaying them signs the visitor out.
+  for (const key of [...url.searchParams.keys()]) if (key.startsWith('__clerk')) url.searchParams.delete(key)
   const signIn = new URL('/sign-in', url.origin)
   signIn.searchParams.set('redirect_url', url.pathname + url.search)
   return new Response(null, { status: 307, headers: { Location: signIn.toString(), 'Cache-Control': 'no-store' } })
@@ -24,7 +26,13 @@ export default async function proxy(request: Request) {
     const state = await clerk.authenticateRequest(request, { authorizedParties: [new URL(request.url).origin] })
     // Clerk needs a round trip to refresh or establish the session; its headers carry the redirect.
     if (state.status === 'handshake') return new Response(null, { status: 307, headers: state.headers })
-    if (state.isAuthenticated) return next({ headers: { 'Cache-Control': 'private, no-store' } })
+    // After a handshake Clerk sets cookies and redirects to the clean URL (development keys). Follow it, as Clerk's own SDKs do.
+    if (state.headers.get('location')) return new Response(null, { status: 307, headers: state.headers })
+    if (state.isAuthenticated) {
+      const headers = new Headers(state.headers)
+      headers.set('Cache-Control', 'private, no-store')
+      return next({ headers })
+    }
   } catch (err) {
     console.error('Login gateway: session check failed', err)
   }
