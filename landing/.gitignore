@@ -25,3 +25,8 @@ dist-ssr
 
 # playwright-cli session output
 .playwright-cli/
+
+# Clerk keys: keep real values in .env.local (ignored) and in Vercel env settings
+.env
+.env.*
+!.env.example
