@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- CMFStack mark: three material swatches fanned like a sample book -->
+  <rect x="10" y="18" width="30" height="30" rx="4" fill="#dccfb8" transform="rotate(-14 25 33)"/>
+  <rect x="17" y="16" width="30" height="30" rx="4" fill="#9b5a31"/>
+  <rect x="24" y="14" width="30" height="30" rx="4" fill="#111111" transform="rotate(14 39 29)"/>
+</svg>

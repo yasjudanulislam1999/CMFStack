@@ -1,0 +1,7 @@
+# Original 208 MB source model: over GitHub's 100 MB limit. models/honda-e.glb is the optimised copy that ships.
+models/free__honda_e_detailed_interior_2021.glb
+.DS_Store
+.taste-skill/
+.playwright-cli/
+node_modules/
+dist/
